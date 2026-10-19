@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>มีอะไรจะบอก 💌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Dancing+Script:wght@600&family=Charmonman:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff1f3;--card:#fffafa;--ink:#5a2a3a;--soft:#a86b7c;--rose:#e8557a;--rose2:#ff8fab;--line:#f3c4d0;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2a1219;--card:#3a1b25;--ink:#ffe3ea;--soft:#d79aab;--rose:#ff7a9c;--rose2:#ff9db6;--line:#6b3446;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#2a1219;--card:#3a1b25;--ink:#ffe3ea;--soft:#d79aab;--rose:#ff7a9c;--rose2:#ff9db6;--line:#6b3446;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Mali","Sarabun","Noto Sans Thai",sans-serif;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.scr{display:none;min-height:100%;padding:28px 22px;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;position:relative}
+.scr.on{display:flex;animation:in .4s ease}
+@keyframes in{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+h1{font-size:1.5rem;margin:0;line-height:1.4}
+p{margin:0;color:var(--soft);line-height:1.6}
+.big{font-size:2rem;color:var(--rose);font-weight:700}
+button{font:inherit;cursor:pointer;border:0;border-radius:999px;padding:13px 26px;font-weight:600;color:#fff;background:var(--rose);touch-action:manipulation}
+button.ghost{background:transparent;color:var(--soft);border:1.5px solid var(--line)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--rose2);outline-offset:2px}
+input,textarea{font:inherit;width:100%;padding:11px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);resize:vertical}
+/* editor */
+#ed{justify-content:flex-start;text-align:left;align-items:stretch;max-width:520px;margin:0 auto}
+#ed label{font-size:.85rem;color:var(--soft);display:block;margin:6px 0 3px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row button{flex:1 1 140px}
+#lnk{font-size:.8rem}
+/* scan */
+#fp{width:200px;height:200px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;position:relative}
+#fp svg{width:130px;height:130px;stroke:var(--rose);fill:none;stroke-width:3;stroke-linecap:round}
+#fp.hold{box-shadow:0 0 0 10px color-mix(in srgb,var(--rose) 18%,transparent)}
+.bar{width:220px;height:10px;border-radius:9px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--rose)}
+/* ask */
+#ask{overflow:hidden}
+.cat{font-size:5rem;line-height:1}
+.btns{display:flex;gap:14px;align-items:center;justify-content:center;min-height:120px;width:100%}
+#yes{transition:transform .2s}
+#no{position:relative;border:0}
+#no.run{position:fixed;z-index:5;transition:left .18s,top .18s,background .25s}
+#ask,body{transition:background .25s}
+/* cert */
+.cert{width:min(340px,100%);background:var(--card);border:2px solid var(--rose2);border-radius:18px;padding:22px 18px;box-shadow:0 0 0 6px var(--bg),0 0 0 8px var(--line);display:flex;flex-direction:column;gap:10px}
+.cert h2{margin:0;color:var(--rose);font-size:1.25rem}
+.cert .name{font-size:1.5rem;font-weight:700}
+.sign{align-self:flex-end;font-weight:700;color:var(--rose)}
+.sig{font-family:"Dancing Script","Charmonman",cursive;font-size:1.3rem}
+.cert .sig.name{font-size:2.1rem;font-weight:600}
+.cert .sig.sign{font-size:1.6rem;font-weight:600}
+#cv{position:fixed;inset:0;pointer-events:none;z-index:9}
+.back{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:10px;z-index:8;padding:7px 14px;font-size:.8rem;display:none}
+@media (prefers-reduced-motion:reduce){.scr.on{animation:none}}
+</style>
+</head>
+<body>
+<button class="back ghost" id="back">✏️ แก้ไขข้อความ</button>
+<canvas id="cv"></canvas>
+
+<section class="scr" id="ed">
+  <h1>💌 ทำหน้าเซอร์ไพรส์ของตัวเอง</h1>
+  <p>แก้ข้อความได้เลย ถ้าไม่แก้จะใช้ข้อความตัวอย่าง ใช้ {from} แทนชื่อเรา และ {to} แทนชื่อแฟน</p>
+  <div id="fields"></div>
+  <div class="row"><button id="prev">ดูตัวอย่าง</button><button class="ghost" id="copy">คัดลอกลิงก์ส่งให้แฟน</button></div>
+  <input id="lnk" readonly placeholder="ลิงก์จะขึ้นตรงนี้" aria-label="ลิงก์">
+</section>
+
+<section class="scr" id="s1">
+  <h1 id="t_scanTitle"></h1>
+  <p id="t_scanHint"></p>
+  <div id="fp" role="button" aria-label="กดค้างเพื่อสแกน" tabindex="0">
+    <svg viewBox="0 0 100 100"><path d="M50 18c-17 0-30 13-30 30v8"/><path d="M50 28c-11 0-20 9-20 20 0 10-2 18-6 26"/><path d="M50 38c-5 0-10 4-10 10 0 12-3 23-9 32"/><path d="M50 18c17 0 30 13 30 30 0 8-1 14-3 20"/><path d="M50 28c11 0 20 9 20 20 0 8-1 14-3 20"/><path d="M60 48c0 14-3 25-10 35"/><path d="M50 48v8"/></svg>
+  </div>
+  <div class="bar"><i id="pb"></i></div>
+  <p id="pct">0%</p>
+</section>
+
+<section class="scr" id="s2">
+  <p>ผลการสแกน 💗</p>
+  <div class="big" id="t_resultTitle"></div>
+  <p id="t_resultSub"></p>
+  <div id="nameBox" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px">
+    <input id="toIn" class="sig" placeholder="พิมพ์ชื่อของเธอ" aria-label="ชื่อ" autocomplete="off">
+    <button id="go2">ต่อไป</button>
+  </div>
+</section>
+
+<section class="scr" id="ask">
+  <div class="cat">🐱💌</div>
+  <h1 id="t_question"></h1>
+  <p id="t_subQuestion"></p>
+  <div class="btns"><button id="yes"></button><button class="ghost" id="no"></button></div>
+</section>
+
+<section class="scr" id="s4">
+  <h1 id="t_celebrate"></h1>
+  <div class="cert">
+    <h2 id="t_certTitle"></h2>
+    <p>ขอรับรองว่า</p>
+    <div class="name sig" id="cName"></div>
+    <p id="t_certBody"></p>
+    <div class="sign sig" id="cSign"></div>
+    <p id="cDate" style="font-size:.8rem"></p>
+  </div>
+</section>
+
+<script>
+var F=[
+["from","ชื่อเรา","Win"],
+["to","ชื่อแฟน (เว้นว่างได้ ให้เขาพิมพ์เอง)",""],
+["scanTitle","หัวข้อหน้าสแกน","เอานิ้วมาสแกนหน่อย 👆"],
+["scanHint","ข้อความใต้หัวข้อ","กดค้างไว้ให้แถบเต็มนะ"],
+["resultTitle","ผลสแกน","เธอเหมาะกับเรา"],
+["resultSub","ข้อความใต้ผลสแกน","ความเข้ากันได้ 100% 😌"],
+["question","คำถามใหญ่","รักเค้ามั้ยยย💗💗"],
+["subQuestion","ข้อความใต้คำถาม","คิดดี ๆ นะ ก่อนกดตอบ"],
+["yes","ปุ่มตอบรับ","รักมากกกก😍😍"],
+["no","ปุ่มปฏิเสธ (ปุ่มหนี)","ไม่รักอ่ะ💔💔"],
+["celebrate","ข้อความฉลอง","รักเหมือนกานนนน🥰"],
+["certTitle","หัวใบรับรอง","Happy Anniversary 1 Month"],
+["certBody","เนื้อหาในใบรับรอง","เป็นแฟนของ {from} ไปนานๆนะ"]
+];
+var $=function(i){return document.getElementById(i)};
+var C={},shared=false;
+function defaults(){F.forEach(function(f){C[f[0]]=f[2]})}
+function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
+function dec(s){return JSON.parse(decodeURIComponent(escape(atob(s))))}
+function show(id){document.querySelectorAll(".scr").forEach(function(e){e.classList.remove("on")});$(id).classList.add("on");window.scrollTo(0,0)}
+function rep(s){return s.replace(/\{from\}/g,C.from||"เรา").replace(/\{to\}/g,C.to||"เธอ")}
+
+/* editor */
+defaults();
+var box=$("fields");
+F.forEach(function(f){
+  var l=document.createElement("label");l.textContent=f[1];l.htmlFor="f_"+f[0];
+  var el=f[0]==="certBody"?document.createElement("textarea"):document.createElement("input");
+  if(f[0]==="certBody")el.rows=3;
+  el.id="f_"+f[0];el.value=f[2];if(f[0]==="from"||f[0]==="to")el.className="sig";
+  box.appendChild(l);box.appendChild(el);
+});
+function read(){F.forEach(function(f){var v=$("f_"+f[0]).value.trim();C[f[0]]=v||(f[0]==="to"?"":f[2])})}
+$("copy").onclick=function(){
+  read();
+  var url=location.href.split("#")[0]+"#"+enc(C);
+  $("lnk").value=url;$("lnk").select();
+  try{navigator.clipboard.writeText(url).then(function(){$("copy").textContent="คัดลอกแล้ว ✓"},function(){})}catch(e){}
+};
+$("prev").onclick=function(){read();start(false)};
+$("back").onclick=function(){resetAsk();show("ed");$("back").style.display="none"};
+
+/* flow */
+function start(isShared){
+  shared=isShared;
+  F.forEach(function(f){var e=$("t_"+f[0]);if(e)e.textContent=rep(C[f[0]])});
+  $("yes").textContent=rep(C.yes);$("no").textContent=rep(C.no);
+  $("toIn").value=C.to||"";
+  $("back").style.display=isShared?"none":"block";
+  resetScan();show("s1");
+}
+var prog=0,holding=false,raf=0,last=0;
+function resetScan(){prog=0;draw();resetAsk()}
+var P=[["#ffe0e8","#8e44ad","#fff","#5a2a3a","#a86b7c"],["#8e44ad","#c9c9c9","#333","#fff","#eadcf2"],["#bdbdbd","#ff8fab","#3a1b25","#2b2b2b","#555"]];
+function applyPair(i){
+  var p=P[i%P.length],a=$("ask");
+  document.body.style.background=p[0];a.style.background=p[0];
+  a.style.setProperty("--ink",p[3]);a.style.setProperty("--soft",p[4]);
+  no.style.background=p[1];no.style.color=p[2];
+}
+function resetAsk(){
+  dodges=0;no.classList.remove("run");no.style.cssText="";yes.style.transform="";
+  document.body.style.background="";$("ask").style.cssText="";
+}
+function enterAsk(){resetAsk();applyPair(0);show("ask")}
+function draw(){$("pb").style.width=prog+"%";$("pct").textContent=Math.floor(prog)+"%"}
+function tick(t){
+  var dt=Math.min(t-last,50);last=t;
+  prog+=holding?dt/25:-dt/20;
+  if(prog<0)prog=0;
+  draw();
+  if(prog>=100){holding=false;prog=100;draw();if(navigator.vibrate)navigator.vibrate(60);setTimeout(done1,350);return}
+  if(holding||prog>0)raf=requestAnimationFrame(tick);else raf=0;
+}
+function press(e){e.preventDefault();if($("s1").classList.contains("on")===false)return;holding=true;$("fp").classList.add("hold");if(!raf){last=performance.now();raf=requestAnimationFrame(tick)}}
+function rel(){holding=false;$("fp").classList.remove("hold");if(!raf&&prog>0){last=performance.now();raf=requestAnimationFrame(tick)}}
+var fp=$("fp");
+fp.addEventListener("pointerdown",press);
+["pointerup","pointerleave","pointercancel"].forEach(function(n){fp.addEventListener(n,rel)});
+fp.addEventListener("keydown",function(e){if((e.key===" "||e.key==="Enter")&&!holding)press(e)});
+fp.addEventListener("keyup",rel);
+function done1(){
+  $("fp").classList.remove("hold");
+  $("nameBox").style.display=C.to?"none":"flex";
+  show("s2");
+  if(C.to)setTimeout(enterAsk,2200);
+}
+$("go2").onclick=function(){
+  var v=$("toIn").value.trim();if(!v){$("toIn").focus();return}
+  C.to=v;F.forEach(function(f){var e=$("t_"+f[0]);if(e)e.textContent=rep(C[f[0]])});
+  enterAsk();
+};
+$("toIn").addEventListener("keydown",function(e){if(e.key==="Enter")$("go2").click()});
+
+/* dodging button */
+var dodges=0,no=$("no"),yes=$("yes");
+function dodge(e){
+  if(e&&e.cancelable)e.preventDefault();
+  dodges++;
+  no.classList.add("run");
+  yes.style.transition="none";
+  var mx=Math.max(1,(innerWidth-24)/yes.offsetWidth);
+  yes.style.transform="scale("+Math.min(1+dodges*.15,mx,3.2)+")";
+  var r=yes.getBoundingClientRect();
+  yes.style.transition="";
+  var w=no.offsetWidth,h=no.offsetHeight,m=12,g=20,x=m,y=m;
+  for(var i=0;i<100;i++){
+    var tx=m+Math.random()*(innerWidth-w-2*m),ty=m+Math.random()*(innerHeight-h-2*m);
+    var hit=!(tx+w+g<r.left||tx>r.right+g||ty+h+g<r.top||ty>r.bottom+g);
+    if(!hit){x=tx;y=ty;break}
+  }
+  no.style.left=x+"px";no.style.top=y+"px";
+  applyPair(dodges);
+}
+no.addEventListener("pointerenter",function(e){if(e.pointerType==="mouse")dodge(e)});
+no.addEventListener("pointerdown",dodge);
+no.addEventListener("click",dodge);
+no.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" ")dodge(e)});
+yes.onclick=function(){
+  document.body.style.background="";$("ask").style.cssText="";
+  $("cName").textContent=C.to||"เธอ";
+  $("cSign").textContent="ลงชื่อ "+(C.from||"เรา");
+  $("t_certBody").textContent=rep(C.certBody);
+  $("cDate").textContent=new Date().toLocaleDateString("th-TH",{dateStyle:"long"});
+  show("s4");confetti();
+};
+
+/* confetti */
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  var c=$("cv"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;
+  var cols=["#ff8fab","#e8557a","#ffd166","#ffb3c6","#fff"],p=[];
+  for(var i=0;i<140;i++)p.push({x:Math.random()*c.width,y:-Math.random()*c.height*.6,r:4+Math.random()*5,vy:2+Math.random()*3.5,vx:-1+Math.random()*2,a:Math.random()*6,c:cols[i%5]});
+  var n=0;
+  (function f(){
+    x.clearRect(0,0,c.width,c.height);
+    p.forEach(function(q){q.y+=q.vy;q.x+=q.vx+Math.sin(q.a+=.05);x.fillStyle=q.c;x.fillRect(q.x,q.y,q.r,q.r*1.6)});
+    if(++n<320)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);
+  })();
+}
+
+/* boot */
+start(true);
+</script>
+</body>
+</html>
